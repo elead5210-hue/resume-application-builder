@@ -67,6 +67,21 @@ export const STAGE_TEMPLATES = {
       'Return your answer in the structure described by the required JSON schema.',
     ].join('\n'),
   },
+  styling: {
+    instruction: [
+      'You are helping the user create a CSS style for a resume.',
+      'Read the look the user wants, given in the context, and write CSS that gives the resume that look.',
+      `Follow selector contract version ${SELECTOR_CONTRACT_VERSION}.`,
+      `Target only these class names as selectors: ${RESUME_CLASS_NAMES.map((className) => `.${className}`).join(', ')}.`,
+      `The resume HTML is structured as described below, where each line gives a class name, the elements it goes on, where it sits and what it holds:\n${CONTRACT_STRUCTURE_TEXT}`,
+      'Do not use class names, ids or attribute selectors that are not in the list, and do not write rules that depend on elements outside the resume.',
+      'Do not use @import or url() references to external resources; the CSS must be fully self-contained.',
+      'Return plain CSS text only, without HTML, style tags or markdown.',
+      'Give the style a short, descriptive name that reflects the requested look.',
+      'Place the style name in the "name" field and the CSS string in the "css" field of the JSON response.',
+      'Return your answer in the structure described by the required JSON schema.',
+    ].join('\n'),
+  },
 } satisfies Record<string, PromptTemplate>;
 
 /**

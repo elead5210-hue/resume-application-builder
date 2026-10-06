@@ -7,6 +7,8 @@
 export { buildLoopContext } from './build-loop-context';
 export type { LoopContextInput, LoopQaEntry } from './build-loop-context';
 export { buildPrompt } from './build-prompt';
+export { buildStyleContext } from './build-style-context';
+export type { StyleContextInput } from './build-style-context';
 export { PROMPT_PREAMBLE } from './preamble';
 export { sanitizeResumeHtml } from './sanitize-html';
 export type { SanitizeHtmlResult } from './sanitize-html';
@@ -20,16 +22,19 @@ export {
   finalHtmlResponseSchema,
   questionSchema,
   questionsResponseSchema,
+  styleResponseSchema,
 } from './response-schemas';
 export type {
   ChecklistResponse,
   FinalHtmlResponse,
   QuestionsResponse,
+  StyleResponse,
 } from './response-schemas';
 export {
   CHECKLIST_JSON_SCHEMA,
   FINAL_HTML_JSON_SCHEMA,
   QUESTIONS_JSON_SCHEMA,
+  STYLE_JSON_SCHEMA,
 } from './json-schemas';
 export { parseResponse } from './parse-response';
 export type {
