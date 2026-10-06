@@ -380,6 +380,324 @@ body {
   font-size: 0.875rem;
 }
 
+/* Prompt step */
+
+.prompt-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-6);
+  padding: var(--app-space-6);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+}
+
+.prompt-step__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.prompt-step__prompt,
+.prompt-step__response {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.prompt-step__label {
+  font-weight: 600;
+}
+
+.prompt-step__prompt-text,
+.prompt-step__response-text {
+  width: 100%;
+  min-height: 10rem;
+  padding: var(--app-space-3);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+  background: var(--app-color-surface);
+  color: inherit;
+  font-family: var(--app-font-mono);
+  font-size: 0.875rem;
+  resize: vertical;
+}
+
+.prompt-step__prompt-text {
+  background: var(--app-color-bg);
+}
+
+.prompt-step__response-text[aria-invalid='true'] {
+  border-color: var(--app-color-danger);
+}
+
+.prompt-step__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-3);
+}
+
+.prompt-step__copy,
+.prompt-step__save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--app-space-2) var(--app-space-4);
+  border: 1px solid var(--app-color-primary);
+  border-radius: var(--app-radius);
+  background: var(--app-color-primary);
+  color: var(--app-color-primary-contrast);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.prompt-step__copy {
+  background: var(--app-color-surface);
+  color: var(--app-color-primary);
+}
+
+.prompt-step__copy:hover {
+  background: var(--app-color-bg);
+  color: var(--app-color-primary-hover);
+}
+
+.prompt-step__save:hover:not(:disabled) {
+  background: var(--app-color-primary-hover);
+  border-color: var(--app-color-primary-hover);
+}
+
+.prompt-step__save:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.prompt-step__copy-status {
+  color: var(--app-color-text-muted);
+  font-size: 0.875rem;
+}
+
+.prompt-step__errors {
+  margin: 0;
+  padding: var(--app-space-3) var(--app-space-4) var(--app-space-3)
+    var(--app-space-6);
+  background: var(--app-color-danger-bg);
+  border: 1px solid var(--app-color-danger);
+  border-radius: var(--app-radius);
+  color: var(--app-color-danger-hover);
+}
+
+.prompt-step__preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.prompt-step__preview-title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.prompt-step__preview-json {
+  max-height: 20rem;
+  margin: 0;
+  padding: var(--app-space-3);
+  overflow: auto;
+  background: var(--app-color-bg);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+  font-family: var(--app-font-mono);
+  font-size: 0.875rem;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* Job context step */
+
+.job-context-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+.job-context-step__label {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.job-context-step__hint {
+  margin: 0;
+  color: var(--app-color-text-muted);
+}
+
+.job-context-step__textarea {
+  min-height: 16rem;
+}
+
+.job-context-step__actions {
+  justify-content: flex-start;
+}
+
+/* Question loop step */
+
+.question-loop-step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-6);
+}
+
+.question-loop-step__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+}
+
+.question-loop-step__title {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.question-loop-step__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-6);
+  margin: 0;
+  padding-left: var(--app-space-6);
+}
+
+.question-loop-step__item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+}
+
+.question-loop-step__question {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.question-loop-step__answer {
+  min-height: 6rem;
+}
+
+/* Question loop history and controls */
+
+.question-loop-step__history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+}
+
+.question-loop-step__history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.question-loop-step__history-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--app-space-2);
+  padding: var(--app-space-4);
+  background: var(--app-color-bg);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+}
+
+.question-loop-step__history-item .question-loop-step__answer {
+  align-self: stretch;
+}
+
+.question-loop-step__history-answer {
+  margin: 0;
+  color: var(--app-color-text-muted);
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.question-loop-step__finish {
+  justify-content: flex-end;
+  padding-top: var(--app-space-3);
+  border-top: 1px solid var(--app-color-border);
+}
+
+/* Checklist progress panel */
+
+.checklist-progress {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  padding: var(--app-space-4);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+}
+
+.checklist-progress__title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.checklist-progress__summary {
+  margin: 0;
+  color: var(--app-color-text-muted);
+  font-size: 0.875rem;
+}
+
+.checklist-progress__bar {
+  width: 100%;
+  max-width: none;
+}
+
+.checklist-progress__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.checklist-progress__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-3);
+  padding: var(--app-space-2) var(--app-space-3);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+}
+
+.checklist-progress__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.checklist-progress__item--complete .checklist-progress__label {
+  color: var(--app-color-text-muted);
+}
+
+.checklist-progress__status--pending {
+  background: var(--app-color-bg);
+  color: var(--app-color-text-muted);
+}
+
+.checklist-progress__status--in_progress {
+  background: #fff4d6;
+  border-color: #e0b84a;
+  color: #7a5b00;
+}
+
+.checklist-progress__status--complete {
+  background: #e3f6e8;
+  border-color: #5eb877;
+  color: #1d6b35;
+}
+
 /* Focus visibility */
 
 .app-shell a:focus-visible,
