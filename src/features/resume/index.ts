@@ -1,5 +1,6 @@
 export { default as ChecklistProgressPanel } from './ChecklistProgressPanel'
 export { default as ChecklistSetupStep } from './ChecklistSetupStep'
+export { default as FinalHtmlStep } from './FinalHtmlStep'
 export { default as JobContextStep } from './JobContextStep'
 export { default as QuestionLoopStep } from './QuestionLoopStep'
 export type { AnsweredQuestion } from './QuestionLoopStep'

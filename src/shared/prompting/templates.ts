@@ -1,5 +1,22 @@
-import { RESUME_CLASS_NAMES } from './resume-classes';
+import {
+  RESUME_CLASS_NAMES,
+  SELECTOR_CONTRACT,
+  SELECTOR_CONTRACT_VERSION,
+} from './resume-classes';
 import type { PromptTemplate } from './types';
+
+/**
+ * The selector contract structure as one line per class: the class name, the
+ * elements it goes on, where it sits, and what it holds.
+ */
+const CONTRACT_STRUCTURE_TEXT = SELECTOR_CONTRACT.structure
+  .map(
+    (entry) =>
+      `- ${entry.className} (${entry.elements.join(' or ')}, ${
+        entry.parent === null ? 'root element' : `directly inside ${entry.parent}`
+      }): ${entry.description}`,
+  )
+  .join('\n');
 
 /**
  * One instruction template per stage of a resume session.
@@ -41,7 +58,9 @@ export const STAGE_TEMPLATES = {
       'Using the job context, the full question and answer history and the checklist given in the context, produce the final resume as HTML.',
       'Use semantic HTML only, such as header, section, h1, h2, h3, p, ul, li and time elements.',
       'Do not use inline style attributes and do not include any style tags or link tags; all styling is applied separately.',
+      `Follow selector contract version ${SELECTOR_CONTRACT_VERSION}.`,
       `Use only these class names, and only where they fit: ${RESUME_CLASS_NAMES.join(', ')}.`,
+      `Structure the HTML as described below, where each line gives a class name, the elements it goes on, where it sits and what it holds:\n${CONTRACT_STRUCTURE_TEXT}`,
       'Put the whole resume inside a single element with the class "resume" and return only the HTML for that element, not a full document with html, head or body tags.',
       'Use only facts the user has provided and do not invent experience, skills or achievements.',
       'Place the HTML string in the "html" field of the JSON response.',

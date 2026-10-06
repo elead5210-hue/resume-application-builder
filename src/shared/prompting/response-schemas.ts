@@ -44,6 +44,13 @@ export const finalHtmlResponseSchema = z.object({
   html: z.string().min(1, 'html must not be empty'),
 })
 
+/** Response to the styling generator: a named CSS style. */
+export const styleResponseSchema = z.object({
+  name: z.string().min(1, 'name must not be empty'),
+  css: z.string().min(1, 'css must not be empty'),
+})
+
 export type ChecklistResponse = z.infer<typeof checklistResponseSchema>
 export type QuestionsResponse = z.infer<typeof questionsResponseSchema>
 export type FinalHtmlResponse = z.infer<typeof finalHtmlResponseSchema>
+export type StyleResponse = z.infer<typeof styleResponseSchema>

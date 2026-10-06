@@ -99,3 +99,18 @@ export const FINAL_HTML_JSON_SCHEMA: string = JSON.stringify(
   null,
   2,
 )
+
+/** Schema text for the styling response: a named CSS style. */
+export const STYLE_JSON_SCHEMA: string = JSON.stringify(
+  {
+    type: 'object',
+    properties: {
+      name: { type: 'string', minLength: 1 },
+      css: { type: 'string', minLength: 1 },
+    },
+    required: ['name', 'css'],
+    additionalProperties: false,
+  },
+  null,
+  2,
+)

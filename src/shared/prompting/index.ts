@@ -8,6 +8,8 @@ export { buildLoopContext } from './build-loop-context';
 export type { LoopContextInput, LoopQaEntry } from './build-loop-context';
 export { buildPrompt } from './build-prompt';
 export { PROMPT_PREAMBLE } from './preamble';
+export { sanitizeResumeHtml } from './sanitize-html';
+export type { SanitizeHtmlResult } from './sanitize-html';
 export { STAGE_TEMPLATES } from './templates';
 export type { StageTemplateName } from './templates';
 export type { PromptParts, PromptTemplate } from './types';

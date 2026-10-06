@@ -698,6 +698,60 @@ body {
   color: #1d6b35;
 }
 
+/* Sanitized HTML preview */
+
+.sanitized-preview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  margin-bottom: var(--app-space-4);
+}
+
+.sanitized-preview__title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.sanitized-preview__warnings {
+  padding: var(--app-space-3) var(--app-space-4);
+  background: #fff4d6;
+  border: 1px solid #e0b84a;
+  border-radius: var(--app-radius);
+  color: #7a5b00;
+}
+
+.sanitized-preview__warnings-title {
+  margin: 0 0 var(--app-space-2);
+  font-weight: 600;
+}
+
+.sanitized-preview__warning-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  margin: 0;
+  padding-left: var(--app-space-6);
+  overflow-wrap: anywhere;
+}
+
+.sanitized-preview__clean {
+  margin: 0;
+  padding: var(--app-space-3) var(--app-space-4);
+  background: #e3f6e8;
+  border: 1px solid #5eb877;
+  border-radius: var(--app-radius);
+  color: #1d6b35;
+}
+
+.sanitized-preview__frame {
+  display: block;
+  width: 100%;
+  height: 32rem;
+  background: #ffffff;
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+}
+
 /* Focus visibility */
 
 .app-shell a:focus-visible,

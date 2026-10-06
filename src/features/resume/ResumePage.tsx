@@ -4,6 +4,7 @@ import type { ChecklistResponse, QuestionsResponse } from '@/shared/prompting'
 import { SessionStage } from '@/shared/types'
 
 import ChecklistSetupStep from './ChecklistSetupStep'
+import FinalHtmlStep from './FinalHtmlStep'
 import JobContextStep from './JobContextStep'
 import QuestionLoopStep from './QuestionLoopStep'
 import type { AnsweredQuestion } from './QuestionLoopStep'
@@ -50,6 +51,10 @@ export default function ResumePage() {
     dispatch({ type: 'FINISH_EARLY' })
   }
 
+  function handleFinalHtmlSave(html: string) {
+    dispatch({ type: 'SAVE_FINAL_HTML', html })
+  }
+
   return (
     <section>
       <h2 className="app-page-title">Resume</h2>
@@ -79,13 +84,23 @@ export default function ResumePage() {
             onEditAnswer={handleEditAnswer}
             onFinishEarly={handleFinishEarly}
           />
-        ) : stage === SessionStage.FinalHtml ? (
-          <p>
-            {finishedEarly
-              ? `The question loop ended early after ${rounds} of at most ${MAX_LOOP_ROUNDS} rounds with ${countCompleteItems(checklist)} checklist items complete.`
-              : 'Every checklist item is complete.'}{' '}
-            The resume is ready to be generated.
-          </p>
+        ) : stage === SessionStage.FinalHtml && checklist !== null ? (
+          <>
+            <p>
+              {finishedEarly
+                ? `The question loop ended early after ${rounds} of at most ${MAX_LOOP_ROUNDS} rounds with ${countCompleteItems(checklist)} checklist items complete.`
+                : 'Every checklist item is complete.'}{' '}
+              The resume is ready to be generated.
+            </p>
+            <FinalHtmlStep
+              jobContext={jobContext}
+              checklist={checklist}
+              answers={qaHistory}
+              onSave={handleFinalHtmlSave}
+            />
+          </>
+        ) : stage === SessionStage.Complete ? (
+          <p>The final resume HTML has been saved to this session.</p>
         ) : null}
       </div>
     </section>

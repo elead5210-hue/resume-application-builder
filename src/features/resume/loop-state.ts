@@ -17,6 +17,8 @@ export interface LoopState {
   rounds: number
   /** True when the loop was ended by the user or by the safety cap. */
   finishedEarly: boolean
+  /** The final resume HTML saved from the final stage, or null until saved. */
+  html: string | null
 }
 
 /** Every action the session reducer understands. */
@@ -27,6 +29,7 @@ export type LoopAction =
   | { type: 'SUBMIT_ANSWERS'; answers: AnsweredQuestion[] }
   | { type: 'EDIT_ANSWER'; questionId: string; answer: string }
   | { type: 'FINISH_EARLY' }
+  | { type: 'SAVE_FINAL_HTML'; html: string }
 
 /** The state a new session starts in. */
 export const INITIAL_LOOP_STATE: LoopState = {
@@ -37,6 +40,7 @@ export const INITIAL_LOOP_STATE: LoopState = {
   pendingQuestions: [],
   rounds: 0,
   finishedEarly: false,
+  html: null,
 }
 
 /** True when the checklist has items and every one of them is complete. */
@@ -148,6 +152,16 @@ export function loopReducer(state: LoopState, action: LoopAction): LoopState {
         pendingQuestions: [],
         finishedEarly: true,
         stage: SessionStage.FinalHtml,
+      }
+
+    case 'SAVE_FINAL_HTML':
+      if (state.stage !== SessionStage.FinalHtml) {
+        return state
+      }
+      return {
+        ...state,
+        html: action.html,
+        stage: SessionStage.Complete,
       }
 
     default:
