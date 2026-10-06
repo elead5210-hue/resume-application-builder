@@ -1,0 +1,392 @@
+/*
+ * App UI styles for the Resume Builder shell.
+ *
+ * Everything here is scoped under the .app-* class namespace so it never
+ * collides with the resume CSS, which lives in saved styles and is applied
+ * only inside the sandboxed resume iframe.
+ */
+
+:root {
+  --app-color-bg: #f6f7f9;
+  --app-color-surface: #ffffff;
+  --app-color-text: #1f2430;
+  --app-color-text-muted: #5b6475;
+  --app-color-border: #d9dde5;
+  --app-color-primary: #2f5bea;
+  --app-color-primary-hover: #2449c4;
+  --app-color-primary-contrast: #ffffff;
+  --app-color-focus: #8aa4ff;
+  --app-color-danger: #c92a2a;
+  --app-color-danger-hover: #a61e1e;
+  --app-color-danger-bg: #fdecec;
+
+  --app-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica,
+    Arial, sans-serif;
+  --app-font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --app-space-1: 0.25rem;
+  --app-space-2: 0.5rem;
+  --app-space-3: 0.75rem;
+  --app-space-4: 1rem;
+  --app-space-6: 1.5rem;
+  --app-space-8: 2rem;
+
+  --app-radius: 0.5rem;
+  --app-content-width: 72rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--app-color-bg);
+  color: var(--app-color-text);
+  font-family: var(--app-font-sans);
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+/* App shell */
+
+.app-shell {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-4);
+  padding: var(--app-space-3) var(--app-space-6);
+  background: var(--app-color-surface);
+  border-bottom: 1px solid var(--app-color-border);
+}
+
+.app-brand {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-2);
+}
+
+.app-nav a {
+  padding: var(--app-space-2) var(--app-space-3);
+  border-radius: var(--app-radius);
+  color: var(--app-color-text-muted);
+  text-decoration: none;
+}
+
+.app-nav a:hover {
+  background: var(--app-color-bg);
+  color: var(--app-color-text);
+}
+
+.app-nav a[aria-current='page'] {
+  background: var(--app-color-bg);
+  color: var(--app-color-text);
+  font-weight: 600;
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--app-content-width);
+  margin: 0 auto;
+  padding: var(--app-space-8) var(--app-space-6);
+}
+
+/* Skip link and error banner */
+
+.app-skip-link {
+  position: absolute;
+  top: 0;
+  left: var(--app-space-4);
+  z-index: 100;
+  padding: var(--app-space-2) var(--app-space-3);
+  background: var(--app-color-primary);
+  color: var(--app-color-primary-contrast);
+  border-radius: 0 0 var(--app-radius) var(--app-radius);
+  transform: translateY(-120%);
+}
+
+.app-skip-link:focus {
+  transform: translateY(0);
+}
+
+.app-error-banner {
+  padding: var(--app-space-3) var(--app-space-6);
+  background: var(--app-color-danger-bg);
+  border-bottom: 1px solid var(--app-color-danger);
+  color: var(--app-color-danger-hover);
+}
+
+.app-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Page content */
+
+.app-page-title {
+  margin: 0 0 var(--app-space-2);
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.app-page-lead {
+  margin: 0 0 var(--app-space-6);
+  color: var(--app-color-text-muted);
+}
+
+.app-card {
+  padding: var(--app-space-6);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+}
+
+.app-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--app-space-3);
+}
+
+/* Dashboard */
+
+.app-dashboard {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
+  gap: var(--app-space-8);
+  margin-top: var(--app-space-8);
+}
+
+.app-section-title {
+  margin: 0 0 var(--app-space-3);
+  font-size: 1.25rem;
+}
+
+.app-empty {
+  color: var(--app-color-text-muted);
+}
+
+.app-empty p {
+  margin: 0;
+}
+
+/* Lists */
+
+.app-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--app-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-list__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--app-space-3);
+  padding: var(--app-space-4);
+  background: var(--app-color-surface);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+}
+
+.app-list__main {
+  display: flex;
+  flex: 1 1 14rem;
+  flex-direction: column;
+  gap: var(--app-space-2);
+  min-width: 0;
+}
+
+.app-list__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--app-space-3);
+  color: var(--app-color-text-muted);
+  font-size: 0.875rem;
+}
+
+.app-list__percent {
+  min-width: 2.5rem;
+}
+
+/* Badges and progress */
+
+.app-badge {
+  display: inline-block;
+  padding: 0.125rem var(--app-space-2);
+  background: var(--app-color-bg);
+  border: 1px solid var(--app-color-border);
+  border-radius: 999px;
+  color: var(--app-color-text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.app-progress {
+  flex: 1;
+  min-width: 5rem;
+  max-width: 12rem;
+  height: 0.5rem;
+  accent-color: var(--app-color-primary);
+}
+
+/* Inline rename */
+
+.app-inline-rename {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--app-space-2);
+}
+
+.app-inline-rename__name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.app-input {
+  flex: 1 1 10rem;
+  padding: var(--app-space-2) var(--app-space-3);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+  background: var(--app-color-surface);
+  color: inherit;
+  font: inherit;
+}
+
+/* Dialog */
+
+.app-dialog {
+  width: min(28rem, calc(100% - 2rem));
+  padding: var(--app-space-6);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+  background: var(--app-color-surface);
+  color: var(--app-color-text);
+}
+
+.app-dialog::backdrop {
+  background: rgba(31, 36, 48, 0.5);
+}
+
+.app-dialog__title {
+  margin: 0 0 var(--app-space-2);
+  font-size: 1.25rem;
+}
+
+.app-dialog__message {
+  margin: 0 0 var(--app-space-6);
+  color: var(--app-color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.app-dialog__actions {
+  justify-content: flex-end;
+}
+
+/* Controls */
+
+.app-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--app-space-2) var(--app-space-4);
+  border: 1px solid var(--app-color-primary);
+  border-radius: var(--app-radius);
+  background: var(--app-color-primary);
+  color: var(--app-color-primary-contrast);
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.app-button:hover {
+  background: var(--app-color-primary-hover);
+  border-color: var(--app-color-primary-hover);
+}
+
+.app-button--secondary {
+  background: var(--app-color-surface);
+  color: var(--app-color-primary);
+}
+
+.app-button--secondary:hover {
+  background: var(--app-color-bg);
+  color: var(--app-color-primary-hover);
+}
+
+.app-button--danger {
+  background: var(--app-color-danger);
+  border-color: var(--app-color-danger);
+}
+
+.app-button--danger:hover {
+  background: var(--app-color-danger-hover);
+  border-color: var(--app-color-danger-hover);
+}
+
+.app-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.app-textarea {
+  width: 100%;
+  min-height: 10rem;
+  padding: var(--app-space-3);
+  border: 1px solid var(--app-color-border);
+  border-radius: var(--app-radius);
+  background: var(--app-color-surface);
+  color: inherit;
+  font: inherit;
+  resize: vertical;
+}
+
+.app-code {
+  font-family: var(--app-font-mono);
+  font-size: 0.875rem;
+}
+
+/* Focus visibility */
+
+.app-shell a:focus-visible,
+.app-shell button:focus-visible,
+.app-shell textarea:focus-visible,
+.app-shell select:focus-visible,
+.app-shell input:focus-visible {
+  outline: 3px solid var(--app-color-focus);
+  outline-offset: 2px;
+}
