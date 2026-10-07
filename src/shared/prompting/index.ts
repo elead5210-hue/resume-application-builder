@@ -4,6 +4,8 @@
  * Prompt builders, response schemas and tolerant JSON parsers will be
  * exported from here as they are added in later goals.
  */
+export { buildFinalContext } from './build-final-context';
+export type { FinalContextInput } from './build-final-context';
 export { buildLoopContext } from './build-loop-context';
 export type { LoopContextInput, LoopQaEntry } from './build-loop-context';
 export { buildPrompt } from './build-prompt';

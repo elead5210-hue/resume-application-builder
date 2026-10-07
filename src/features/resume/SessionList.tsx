@@ -41,7 +41,6 @@ export default function SessionList() {
                   label="Resume title"
                   placeholder="Untitled resume"
                   editing={editingId === session.id}
-                  onStartEdit={() => setEditingId(session.id)}
                   onStopEdit={() => setEditingId(null)}
                   onSave={(title) => void updateSession(session.id, { title })}
                 />

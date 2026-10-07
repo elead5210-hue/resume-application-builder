@@ -87,7 +87,7 @@ export function buildStandaloneHtml(input: ExportHtmlInput): string {
 
   return buildDocument({
     html: input.html,
-    css,
+    styleCss: css,
     title: input.title.trim() === '' ? FALLBACK_TITLE : input.title.trim(),
   })
 }

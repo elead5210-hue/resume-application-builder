@@ -8,8 +8,6 @@ interface InlineRenameProps {
   onSave: (newValue: string) => void
   /** Whether the control is in edit mode. */
   editing: boolean
-  /** Called when the user asks to start editing (for example via a Rename button). */
-  onStartEdit: () => void
   /** Called when the user cancels or finishes editing. */
   onStopEdit: () => void
   /** Accessible label for the text field. */
@@ -29,7 +27,6 @@ export default function InlineRename({
   value,
   onSave,
   editing,
-  onStartEdit,
   onStopEdit,
   label = 'Name',
   placeholder = 'Untitled',

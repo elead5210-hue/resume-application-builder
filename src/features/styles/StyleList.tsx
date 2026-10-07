@@ -36,7 +36,6 @@ export default function StyleList() {
                 label="Style name"
                 placeholder="Untitled style"
                 editing={editingId === style.id}
-                onStartEdit={() => setEditingId(style.id)}
                 onStopEdit={() => setEditingId(null)}
                 onSave={(name) => void updateStyle(style.id, { name })}
               />
