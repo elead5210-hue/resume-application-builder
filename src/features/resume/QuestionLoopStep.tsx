@@ -1,5 +1,5 @@
 import { useId, useMemo, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
 
 import {
   QUESTIONS_JSON_SCHEMA,
@@ -10,6 +10,8 @@ import {
 } from '@/shared/prompting'
 import type { LoopQaEntry, QuestionsResponse } from '@/shared/prompting'
 import { PromptStep } from '@/shared/ui/PromptStep'
+import { isTranscriptionSupported, transcribeAudio } from '@/shared/ui/transcribe-audio'
+import { useAudioRecorder } from '@/shared/ui/use-audio-recorder'
 import { useFocusOnChange } from '@/shared/ui/use-focus-on-change'
 
 import ChecklistProgressPanel from './ChecklistProgressPanel'
@@ -67,6 +69,13 @@ export default function QuestionLoopStep({
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
+  const [uploadErrors, setUploadErrors] = useState<Record<string, string>>({})
+  const recorder = useAudioRecorder()
+  const [recordingId, setRecordingId] = useState<string | null>(null)
+  const [transcribingId, setTranscribingId] = useState<string | null>(null)
+  const [recordErrors, setRecordErrors] = useState<Record<string, string>>({})
+  // Recording only helps when the browser can also turn it into text.
+  const recordingAvailable = recorder.isSupported && isTranscriptionSupported()
   // When a new set of questions arrives, move focus to the first answer field
   // so keyboard and screen reader users can start answering straight away.
   const firstAnswerRef = useFocusOnChange<HTMLTextAreaElement>(
@@ -102,6 +111,93 @@ export default function QuestionLoopStep({
       })),
     )
     setDrafts({})
+  }
+
+  async function handleTranscriptUpload(
+    questionId: string,
+    event: ChangeEvent<HTMLInputElement>,
+  ) {
+    const input = event.target
+    const file = input.files?.[0]
+    if (!file) {
+      return
+    }
+    const isTextFile =
+      file.name.toLowerCase().endsWith('.txt') || file.type === 'text/plain'
+    if (!isTextFile) {
+      setUploadErrors((current) => ({
+        ...current,
+        [questionId]: 'Please choose a .txt transcript file.',
+      }))
+      input.value = ''
+      return
+    }
+    try {
+      const text = await file.text()
+      setDrafts((current) => ({ ...current, [questionId]: text }))
+      setUploadErrors((current) => {
+        const next = { ...current }
+        delete next[questionId]
+        return next
+      })
+    } catch {
+      setUploadErrors((current) => ({
+        ...current,
+        [questionId]: 'The file could not be read. Try again or paste the text.',
+      }))
+    }
+    input.value = ''
+  }
+
+  function setRecordError(questionId: string, message: string | null) {
+    setRecordErrors((current) => {
+      const next = { ...current }
+      if (message === null) {
+        delete next[questionId]
+      } else {
+        next[questionId] = message
+      }
+      return next
+    })
+  }
+
+  async function handleRecordToggle(questionId: string) {
+    if (recordingId === questionId && recorder.isRecording) {
+      const recording = await recorder.stop()
+      setRecordingId(null)
+      if (recording === null) {
+        setRecordError(
+          questionId,
+          'No audio was captured. Try again, upload a transcript, or type your answer.',
+        )
+        return
+      }
+      setTranscribingId(questionId)
+      const result = await transcribeAudio(recording.blob)
+      setTranscribingId(null)
+      if (result.status === 'ok') {
+        setRecordError(questionId, null)
+        setDrafts((current) => {
+          const existing = current[questionId] ?? ''
+          return {
+            ...current,
+            [questionId]:
+              existing.trim() === ''
+                ? result.text
+                : `${existing.trimEnd()} ${result.text}`,
+          }
+        })
+      } else {
+        setRecordError(questionId, result.reason)
+      }
+      return
+    }
+    if (recorder.isRecording || transcribingId !== null) {
+      return
+    }
+    setRecordError(questionId, null)
+    setRecordingId(questionId)
+    await recorder.start()
   }
 
   function startEditing(entry: AnsweredQuestion) {
@@ -211,9 +307,27 @@ export default function QuestionLoopStep({
             Answer every question below, then generate the next prompt. Your
             answers are saved with this resume.
           </p>
+          <p className="question-loop-step__transcript-help">
+            Prefer to speak your answer? Record it, upload the audio file to a
+            transcription service such as TurboScribe, then use the upload
+            button under a question to add the .txt transcript it produces. You
+            can also type or paste your answer directly.
+          </p>
           <ol className="question-loop-step__list">
             {pendingQuestions.map((question, index) => {
               const fieldId = `${formId}-${question.id}`
+              const isRecordingThis =
+                recordingId === question.id && recorder.isRecording
+              const isTranscribingThis = transcribingId === question.id
+              const recordDisabled =
+                isTranscribingThis ||
+                (!isRecordingThis &&
+                  (recorder.isRecording || transcribingId !== null))
+              const recordError =
+                recordErrors[question.id] ??
+                (recordingId === question.id && !recorder.isRecording
+                  ? recorder.error
+                  : null)
               return (
                 <li key={question.id} className="question-loop-step__item">
                   <label
@@ -239,6 +353,84 @@ export default function QuestionLoopStep({
                     }
                     rows={4}
                   />
+                  <div className="question-loop-step__record">
+                    {recordingAvailable ? (
+                      <>
+                        <button
+                          type="button"
+                          className="app-button app-button--secondary question-loop-step__record-button"
+                          onClick={() => void handleRecordToggle(question.id)}
+                          disabled={recordDisabled}
+                          aria-pressed={isRecordingThis}
+                        >
+                          {isRecordingThis ? 'Stop recording' : 'Record answer'}
+                          <span className="app-visually-hidden">
+                            {' '}
+                            for question {index + 1}
+                          </span>
+                        </button>
+                        {isRecordingThis ? (
+                          <p
+                            className="question-loop-step__record-status"
+                            role="status"
+                          >
+                            Recording... press stop when you are done.
+                          </p>
+                        ) : null}
+                        {isTranscribingThis ? (
+                          <p
+                            className="question-loop-step__record-status"
+                            role="status"
+                          >
+                            Transcribing your recording...
+                          </p>
+                        ) : null}
+                        {recordError ? (
+                          <p
+                            className="question-loop-step__record-error"
+                            role="alert"
+                          >
+                            {recordError}
+                          </p>
+                        ) : null}
+                      </>
+                    ) : (
+                      <p className="question-loop-step__record-note">
+                        Recording and automatic transcription are not available in
+                        this browser. Upload a transcript file or type your answer
+                        instead.
+                      </p>
+                    )}
+                  </div>
+                  <div className="question-loop-step__transcript">
+                    <label
+                      className="app-button app-button--secondary question-loop-step__transcript-label"
+                      htmlFor={`${fieldId}-transcript`}
+                    >
+                      Upload transcript (.txt)
+                      <span className="app-visually-hidden">
+                        {' '}
+                        for question {index + 1}
+                      </span>
+                    </label>
+                    <input
+                      id={`${fieldId}-transcript`}
+                      type="file"
+                      accept=".txt,text/plain"
+                      className="app-visually-hidden"
+                      onChange={(event) =>
+                        void handleTranscriptUpload(question.id, event)
+                      }
+                    />
+                    {uploadErrors[question.id] ? (
+                      <p
+                        className="question-loop-step__transcript-error"
+                        role="alert"
+                      >
+                        {uploadErrors[question.id]}
+                      </p>
+                    ) : null}
+                  </div>
                 </li>
               )
             })}

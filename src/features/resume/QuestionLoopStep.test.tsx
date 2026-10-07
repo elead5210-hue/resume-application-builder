@@ -1,7 +1,7 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { ComponentProps } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { z } from 'zod'
 
 import type { ChecklistResponse, QuestionsResponse } from '@/shared/prompting'
@@ -9,6 +9,54 @@ import { checklistResponseSchema, questionsResponseSchema } from '@/shared/promp
 
 import QuestionLoopStep from './QuestionLoopStep'
 import type { AnsweredQuestion } from './QuestionLoopStep'
+
+/**
+ * Recording and transcription depend on browser APIs that jsdom does not have,
+ * so both modules are replaced. The defaults match jsdom: nothing is supported.
+ */
+const audioMock = vi.hoisted(() => ({
+  recorderSupported: false,
+  transcriptionSupported: false,
+  recording: null as { blob: Blob; mimeType: string } | null,
+  transcribe: null as unknown as (blob: Blob) => Promise<unknown>,
+}))
+
+vi.mock('@/shared/ui/use-audio-recorder', async () => {
+  const { useState } = await import('react')
+  return {
+    useAudioRecorder: () => {
+      const [isRecording, setIsRecording] = useState(false)
+      return {
+        status: isRecording ? 'recording' : 'idle',
+        isRecording,
+        isSupported: audioMock.recorderSupported,
+        error: null,
+        start: async () => {
+          setIsRecording(true)
+        },
+        stop: async () => {
+          setIsRecording(false)
+          return audioMock.recording
+        },
+        cancel: () => {
+          setIsRecording(false)
+        },
+      }
+    },
+  }
+})
+
+vi.mock('@/shared/ui/transcribe-audio', () => ({
+  isTranscriptionSupported: () => audioMock.transcriptionSupported,
+  transcribeAudio: (blob: Blob) => audioMock.transcribe(blob),
+}))
+
+beforeEach(() => {
+  audioMock.recorderSupported = false
+  audioMock.transcriptionSupported = false
+  audioMock.recording = null
+  audioMock.transcribe = vi.fn()
+})
 
 /**
  * Samples are built from the schemas themselves, so these tests do not repeat
@@ -217,6 +265,154 @@ describe('QuestionLoopStep', () => {
       const submitted = props.onSubmitAnswers.mock.calls[0][0] as AnsweredQuestion[]
       expect(submitted).toHaveLength(questionsOf(pending).length)
       expect(JSON.stringify(submitted)).toContain('ANSWER-MARKER')
+    })
+  })
+
+  describe('uploading a transcript', () => {
+    function transcriptInputs(container: HTMLElement): HTMLInputElement[] {
+      return Array.from(
+        container.querySelectorAll<HTMLInputElement>('input[type="file"]'),
+      )
+    }
+
+    it('shows instructions for transcribing audio outside the app', () => {
+      renderStep({ pendingQuestions: makePending() })
+
+      expect(screen.getByText(/TurboScribe/i)).toBeInTheDocument()
+      expect(screen.getByText(/upload the audio file/i)).toBeInTheDocument()
+    })
+
+    it('shows one transcript upload control per question', () => {
+      const pending = makePending()
+      const { container } = renderStep({ pendingQuestions: pending })
+
+      const inputs = transcriptInputs(container)
+      expect(inputs).toHaveLength(questionsOf(pending).length)
+      for (const input of inputs) {
+        expect(input.accept).toContain('.txt')
+      }
+      expect(
+        screen.getAllByText(/upload transcript/i).length,
+      ).toBe(questionsOf(pending).length)
+    })
+
+    it('places the contents of an uploaded .txt file in that question\'s answer', async () => {
+      const { user, container } = renderStep({ pendingQuestions: makePending() })
+
+      const file = new File(['TRANSCRIPT-MARKER spoken answer'], 'answer.txt', {
+        type: 'text/plain',
+      })
+      await user.upload(transcriptInputs(container)[0], file)
+
+      expect(answerFields(container)[0]).toHaveValue(
+        'TRANSCRIPT-MARKER spoken answer',
+      )
+    })
+
+    it('submits an uploaded transcript as the answer', async () => {
+      const pending = makePending()
+      const { user, props, container } = renderStep({ pendingQuestions: pending })
+
+      for (const input of transcriptInputs(container)) {
+        const file = new File(['UPLOADED-SUBMIT-MARKER'], 'answer.txt', {
+          type: 'text/plain',
+        })
+        await user.upload(input, file)
+      }
+      await user.click(screen.getByRole('button', { name: /submit|send|save answers/i }))
+
+      expect(props.onSubmitAnswers).toHaveBeenCalledTimes(1)
+      const submitted = props.onSubmitAnswers.mock.calls[0][0] as AnsweredQuestion[]
+      expect(submitted).toHaveLength(questionsOf(pending).length)
+      for (const entry of submitted) {
+        expect(entry.answer).toBe('UPLOADED-SUBMIT-MARKER')
+      }
+    })
+
+    it('rejects a file that is not a .txt file', async () => {
+      const { container } = renderStep({ pendingQuestions: makePending() })
+      const input = transcriptInputs(container)[0]
+
+      const file = new File(['not a transcript'], 'answer.pdf', {
+        type: 'application/pdf',
+      })
+      // fireEvent-style upload bypasses the accept filter that user.upload applies
+      const userNoFilter = userEvent.setup({ applyAccept: false })
+      await userNoFilter.upload(input, file)
+
+      expect(screen.getByRole('alert')).toHaveTextContent(/\.txt/i)
+      expect(answerFields(container)[0]).toHaveValue('')
+    })
+  })
+
+  describe('recording an answer', () => {
+    function enableRecording() {
+      audioMock.recorderSupported = true
+      audioMock.transcriptionSupported = true
+      audioMock.recording = {
+        blob: new Blob(['audio'], { type: 'audio/webm' }),
+        mimeType: 'audio/webm',
+      }
+    }
+
+    it('shows a record button for every question', () => {
+      enableRecording()
+      const questions = questionsOf(makePending())
+      renderStep({ pendingQuestions: questions })
+
+      expect(
+        screen.getAllByRole('button', { name: /record answer/i }),
+      ).toHaveLength(questions.length)
+    })
+
+    it('shows the fallback message when recording is unsupported', () => {
+      const questions = questionsOf(makePending())
+      renderStep({ pendingQuestions: questions })
+
+      expect(
+        screen.queryByRole('button', { name: /record answer/i }),
+      ).not.toBeInTheDocument()
+      expect(
+        screen.getAllByText(/not available in this browser/i),
+      ).toHaveLength(questions.length)
+    })
+
+    it('puts the transcribed text into that question\'s answer', async () => {
+      enableRecording()
+      audioMock.transcribe = vi.fn().mockResolvedValue({
+        status: 'ok',
+        text: 'SPOKEN-ANSWER-MARKER',
+      })
+      const { user, container } = renderStep({
+        pendingQuestions: questionsOf(makePending()),
+      })
+
+      await user.click(screen.getAllByRole('button', { name: /record answer/i })[0])
+      await user.click(screen.getByRole('button', { name: /stop recording/i }))
+
+      expect(await screen.findByDisplayValue('SPOKEN-ANSWER-MARKER')).toBe(
+        answerFields(container)[0],
+      )
+      expect(audioMock.transcribe).toHaveBeenCalledTimes(1)
+    })
+
+    it('shows the reason and keeps the answer when transcription is unavailable', async () => {
+      enableRecording()
+      audioMock.transcribe = vi.fn().mockResolvedValue({
+        status: 'unavailable',
+        reason: 'TRANSCRIPTION-UNAVAILABLE-MARKER',
+      })
+      const { user, container } = renderStep({
+        pendingQuestions: questionsOf(makePending()),
+      })
+
+      await user.click(screen.getAllByRole('button', { name: /record answer/i })[0])
+      await user.click(screen.getByRole('button', { name: /stop recording/i }))
+
+      expect(
+        await screen.findByText(/TRANSCRIPTION-UNAVAILABLE-MARKER/),
+      ).toBeInTheDocument()
+      expect(answerFields(container)[0]).toHaveValue('')
     })
   })
 
