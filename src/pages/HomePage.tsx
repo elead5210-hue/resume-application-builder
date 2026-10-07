@@ -21,6 +21,11 @@ export default function HomePage() {
         assistant. Start a new resume or create a style to apply to your
         resumes.
       </p>
+      <p className="app-notice" role="note">
+        <strong>Your data stays in this browser.</strong> Resumes and styles are
+        stored only on this device and are not uploaded anywhere. Clearing
+        browser data deletes them, so export a backup regularly.
+      </p>
       <div className="app-actions">
         <button
           type="button"
