@@ -99,7 +99,21 @@ export default function StyleGeneratorStep() {
       </form>
 
       {prompt !== null && savedName === null ? (
-        <PromptStep prompt={prompt} schema={styleResponseSchema} onSave={handleSave} />
+        <PromptStep
+          title="Style prompt"
+          prompt={prompt}
+          schema={styleResponseSchema}
+          onSave={handleSave}
+          saveLabel="Save style"
+          helperText={
+            <p>
+              Copy the prompt below and paste it into any AI assistant. It will
+              reply with a name and the CSS for your look. Paste that reply back
+              into the box underneath, check the preview, and save it. The style
+              is then available for every saved resume.
+            </p>
+          }
+        />
       ) : null}
 
       {saveError !== null ? (
@@ -108,8 +122,17 @@ export default function StyleGeneratorStep() {
         </p>
       ) : null}
 
+      <span
+        className="app-visually-hidden"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        {savedName !== null ? `Style saved: ${savedName}.` : ''}
+      </span>
+
       {savedName !== null ? (
-        <div className="style-generator-step__saved" role="status">
+        <div className="style-generator-step__saved">
           <p>
             Saved the style &ldquo;{savedName}&rdquo;. You can find it in your
             saved styles on the home page.

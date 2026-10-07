@@ -11,6 +11,7 @@ import InlineRename from '@/shared/ui/InlineRename'
 export default function StyleList() {
   const styles = useStorageStore((state) => state.styles)
   const updateStyle = useStorageStore((state) => state.updateStyle)
+  const duplicateStyle = useStorageStore((state) => state.duplicateStyle)
   const removeStyle = useStorageStore((state) => state.removeStyle)
 
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -53,6 +54,13 @@ export default function StyleList() {
                 onClick={() => setEditingId(style.id)}
               >
                 Rename
+              </button>
+              <button
+                type="button"
+                className="app-button app-button--secondary"
+                onClick={() => void duplicateStyle(style.id)}
+              >
+                Duplicate
               </button>
               <button
                 type="button"

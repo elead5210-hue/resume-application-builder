@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import type { ReactNode } from 'react'
 import { useStorageStore } from './store'
 
@@ -22,15 +22,39 @@ export default function StorageProvider({ children }: StorageProviderProps) {
     void hydrate()
   }, [hydrate])
 
+  const errorHeadingId = useId()
+  const errorMessageId = useId()
+  const errorHeadingRef = useRef<HTMLHeadingElement>(null)
+  const showingError = !hydrated && error !== null
+
+  // When loading fails, move focus to the error heading so keyboard and screen
+  // reader users land on the problem and can tab straight to the retry button.
+  useEffect(() => {
+    if (showingError) {
+      errorHeadingRef.current?.focus()
+    }
+  }, [showingError])
+
   if (hydrated) {
     return <>{children}</>
   }
 
   if (error) {
     return (
-      <main className="app-main" role="alert">
-        <h2 className="app-page-title">Could not load saved data</h2>
-        <p className="app-page-lead">{error}</p>
+      <main className="app-main" aria-labelledby={errorHeadingId}>
+        <h2
+          id={errorHeadingId}
+          ref={errorHeadingRef}
+          className="app-page-title"
+          tabIndex={-1}
+          aria-describedby={errorMessageId}
+        >
+          Could not load saved data
+        </h2>
+        <p id={errorMessageId} className="app-page-lead">
+          {error} Your saved resumes and styles are still in this browser. Try
+          again, or reload the page.
+        </p>
         <div className="app-actions">
           <button
             type="button"
@@ -45,8 +69,10 @@ export default function StorageProvider({ children }: StorageProviderProps) {
   }
 
   return (
-    <main className="app-main" aria-busy="true" aria-live="polite">
-      <p className="app-page-lead">Loading your saved resumes and styles...</p>
+    <main className="app-main" aria-busy="true">
+      <p className="app-page-lead" role="status" aria-live="polite">
+        Loading your saved resumes and styles...
+      </p>
     </main>
   )
 }

@@ -22,6 +22,7 @@ export default function JobContextStep({
 }: JobContextStepProps) {
   const textareaId = useId()
   const hintId = useId()
+  const nextId = useId()
   const [draft, setDraft] = useState(initialValue)
 
   const trimmed = draft.trim()
@@ -41,7 +42,12 @@ export default function JobContextStep({
       </label>
       <p className="job-context-step__hint" id={hintId}>
         Paste the role, company, description and requirements of the job you
-        are applying for.
+        are applying for. The more of the original posting you include, the
+        better the resume can be tailored to it.
+      </p>
+      <p className="job-context-step__hint" id={nextId}>
+        What happens next: your text is saved, and the next step gives you a
+        prompt to copy into any AI assistant. You can edit this text later.
       </p>
       <textarea
         id={textareaId}
@@ -49,7 +55,7 @@ export default function JobContextStep({
         value={draft}
         onChange={(event) => setDraft(event.target.value)}
         rows={14}
-        aria-describedby={hintId}
+        aria-describedby={`${hintId} ${nextId}`}
       />
       <div className="app-actions job-context-step__actions">
         <button

@@ -7,6 +7,7 @@ import {
   saveSession,
 } from './sessions-repository'
 import { deleteStyle, listStyles, saveStyle } from './styles-repository'
+import type { BackupFile } from './backup-schema'
 
 /** Data needed to start a new resume session. */
 export interface NewSessionInput {
@@ -19,6 +20,11 @@ export interface NewStyleInput {
   name: string
   css: string
 }
+
+/** The outcome of importing a backup into storage. */
+export type ImportBackupResult =
+  | { ok: true; sessionCount: number; styleCount: number }
+  | { ok: false; error: string }
 
 export interface StorageState {
   sessions: ResumeSession[]
@@ -44,7 +50,14 @@ export interface StorageState {
     id: string,
     changes: Partial<Pick<StyleSheet, 'name' | 'css'>>,
   ) => Promise<StyleSheet | undefined>
+  duplicateStyle: (id: string) => Promise<StyleSheet | undefined>
   removeStyle: (id: string) => Promise<void>
+
+  /**
+   * Saves every session and style from a validated backup. Records with an id
+   * that already exists are replaced, and all others are added.
+   */
+  importBackup: (backup: BackupFile) => Promise<ImportBackupResult>
 }
 
 function newId(): string {
@@ -61,6 +74,21 @@ function upsertNewestFirst<T extends { id: string }>(
   record: T,
 ): T[] {
   return [record, ...items.filter((item) => item.id !== record.id)]
+}
+
+/**
+ * Add or replace several records by id, keeping the newest first. Records in
+ * `records` win over existing items with the same id.
+ */
+function mergeNewestFirst<T extends { id: string; updatedAt: string }>(
+  items: T[],
+  records: T[],
+): T[] {
+  const incoming = new Set(records.map((record) => record.id))
+  return [
+    ...records,
+    ...items.filter((item) => !incoming.has(item.id)),
+  ].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
 }
 
 let hydratePromise: Promise<void> | null = null
@@ -191,6 +219,32 @@ export const useStorageStore = create<StorageState>()((set, get) => ({
     }
   },
 
+  duplicateStyle: async (id) => {
+    const existing = get().styles.find((style) => style.id === id)
+    if (!existing) return undefined
+    const now = new Date().toISOString()
+    const copy: StyleSheet = {
+      ...existing,
+      id: newId(),
+      schemaVersion: SCHEMA_VERSION,
+      createdAt: now,
+      updatedAt: now,
+      name: `${existing.name} (copy)`,
+    }
+    set((state) => ({ styles: upsertNewestFirst(state.styles, copy) }))
+    try {
+      const saved = await saveStyle(copy)
+      set((state) => ({
+        styles: upsertNewestFirst(state.styles, saved),
+        error: null,
+      }))
+      return saved
+    } catch (error) {
+      set({ error: errorMessage(error) })
+      return copy
+    }
+  },
+
   removeStyle: async (id) => {
     set((state) => ({
       styles: state.styles.filter((style) => style.id !== id),
@@ -200,6 +254,29 @@ export const useStorageStore = create<StorageState>()((set, get) => ({
       set({ error: null })
     } catch (error) {
       set({ error: errorMessage(error) })
+    }
+  },
+
+  importBackup: async (backup) => {
+    try {
+      const [savedSessions, savedStyles] = await Promise.all([
+        Promise.all(backup.sessions.map((session) => saveSession(session))),
+        Promise.all(backup.styles.map((style) => saveStyle(style))),
+      ])
+      set((state) => ({
+        sessions: mergeNewestFirst(state.sessions, savedSessions),
+        styles: mergeNewestFirst(state.styles, savedStyles),
+        error: null,
+      }))
+      return {
+        ok: true,
+        sessionCount: savedSessions.length,
+        styleCount: savedStyles.length,
+      }
+    } catch (error) {
+      const message = errorMessage(error)
+      set({ error: message })
+      return { ok: false, error: message }
     }
   },
 }))

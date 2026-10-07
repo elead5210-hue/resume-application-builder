@@ -30,6 +30,9 @@ export default function ConfirmDialog({
   onCancel,
 }: ConfirmDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
+  // The control that had focus when the dialog opened, so focus can return to it.
+  const openerRef = useRef<HTMLElement | null>(null)
   const titleId = useId()
   const messageId = useId()
 
@@ -38,9 +41,20 @@ export default function ConfirmDialog({
     if (!dialog) return
 
     if (open && !dialog.open) {
+      openerRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null
       dialog.showModal()
+      // Start on the safe action, so Enter or Space never confirms by accident.
+      cancelRef.current?.focus()
     } else if (!open && dialog.open) {
       dialog.close()
+      const opener = openerRef.current
+      openerRef.current = null
+      if (opener && opener.isConnected) {
+        opener.focus()
+      }
     }
   }, [open])
 
@@ -69,6 +83,7 @@ export default function ConfirmDialog({
       </p>
       <div className="app-actions app-dialog__actions">
         <button
+          ref={cancelRef}
           type="button"
           className="app-button app-button--secondary"
           onClick={onCancel}

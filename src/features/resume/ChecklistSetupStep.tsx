@@ -46,6 +46,14 @@ export default function ChecklistSetupStep({
       schema={checklistResponseSchema}
       onSave={onSave}
       saveLabel="Save checklist"
+      helperText={
+        <p>
+          Copy the prompt below and paste it into any AI assistant. It will reply
+          with a checklist of everything needed for this resume. Paste that
+          reply back into the box underneath, check the preview, and save it.
+          The checklist then guides the questions in the next step.
+        </p>
+      }
     />
   )
 }

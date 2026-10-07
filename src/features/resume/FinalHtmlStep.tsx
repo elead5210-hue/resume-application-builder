@@ -106,6 +106,16 @@ export default function FinalHtmlStep({
       prompt={prompt}
       schema={finalHtmlResponseSchema}
       onSave={handleResponseSave}
+      saveLabel="Preview HTML"
+      helperText={
+        <p>
+          Copy the prompt below and paste it into the same AI assistant you used
+          for the questions. It will reply with your finished resume as HTML.
+          Paste that reply back into the box underneath and choose Preview HTML.
+          The HTML is cleaned and shown in a preview with any warnings, and
+          nothing is saved until you confirm it there.
+        </p>
+      }
     />
   )
 }

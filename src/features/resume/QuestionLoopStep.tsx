@@ -10,6 +10,7 @@ import {
 } from '@/shared/prompting'
 import type { LoopQaEntry, QuestionsResponse } from '@/shared/prompting'
 import { PromptStep } from '@/shared/ui/PromptStep'
+import { useFocusOnChange } from '@/shared/ui/use-focus-on-change'
 
 import ChecklistProgressPanel from './ChecklistProgressPanel'
 
@@ -66,6 +67,12 @@ export default function QuestionLoopStep({
   const [drafts, setDrafts] = useState<Record<string, string>>({})
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
+  // When a new set of questions arrives, move focus to the first answer field
+  // so keyboard and screen reader users can start answering straight away.
+  const firstAnswerRef = useFocusOnChange<HTMLTextAreaElement>(
+    pendingQuestions,
+    { enabled: pendingQuestions.length > 0 },
+  )
 
   const prompt = useMemo(() => {
     const qa: LoopQaEntry[] = recentQa.map((entry) => ({
@@ -183,6 +190,13 @@ export default function QuestionLoopStep({
           schema={questionsResponseSchema}
           onSave={onResponseSave}
           saveLabel="Save response"
+          helperText={
+            <p>
+              {recentQa.length === 0
+                ? 'Copy the prompt below into your AI assistant. It will reply with one or two questions and an updated checklist. Paste that reply back into the box underneath, check the preview, and save it. You will then be asked to answer the questions.'
+                : 'Copy the new prompt below into the same AI assistant. It includes your latest answers and checklist. Paste the reply back into the box underneath, check the preview, and save it to get the next questions.'}
+            </p>
+          }
         />
       ) : (
         <form
@@ -193,8 +207,12 @@ export default function QuestionLoopStep({
           <h3 id={`${formId}-title`} className="question-loop-step__title">
             Answer the questions
           </h3>
+          <p id={`${formId}-hint`} className="question-loop-step__hint">
+            Answer every question below, then generate the next prompt. Your
+            answers are saved with this resume.
+          </p>
           <ol className="question-loop-step__list">
-            {pendingQuestions.map((question) => {
+            {pendingQuestions.map((question, index) => {
               const fieldId = `${formId}-${question.id}`
               return (
                 <li key={question.id} className="question-loop-step__item">
@@ -202,10 +220,15 @@ export default function QuestionLoopStep({
                     className="question-loop-step__question"
                     htmlFor={fieldId}
                   >
+                    <span className="app-visually-hidden">
+                      Question {index + 1} of {pendingQuestions.length}:{' '}
+                    </span>
                     {question.text}
                   </label>
                   <textarea
                     id={fieldId}
+                    ref={index === 0 ? firstAnswerRef : undefined}
+                    aria-describedby={`${formId}-hint`}
                     className="app-textarea question-loop-step__answer"
                     value={drafts[question.id] ?? ''}
                     onChange={(event) =>

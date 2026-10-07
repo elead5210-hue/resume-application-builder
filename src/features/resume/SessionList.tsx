@@ -65,6 +65,15 @@ export default function SessionList() {
                 >
                   Resume
                 </Link>
+                {typeof session.finalHtml === 'string' &&
+                session.finalHtml.trim() !== '' ? (
+                  <Link
+                    to={`/render?session=${encodeURIComponent(session.id)}`}
+                    className="app-button app-button--secondary"
+                  >
+                    Preview
+                  </Link>
+                ) : null}
                 <button
                   type="button"
                   className="app-button app-button--secondary"

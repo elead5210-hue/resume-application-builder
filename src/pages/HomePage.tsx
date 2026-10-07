@@ -2,6 +2,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { SessionList } from '@/features/resume'
 import { StyleList } from '@/features/styles'
 import { useStorageStore } from '@/shared/storage'
+import BackupPanel from '@/shared/ui/BackupPanel'
 
 export default function HomePage() {
   const navigate = useNavigate()
@@ -47,6 +48,8 @@ export default function HomePage() {
           <StyleList />
         </section>
       </div>
+
+      <BackupPanel />
     </section>
   )
 }

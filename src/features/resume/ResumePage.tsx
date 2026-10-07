@@ -1,7 +1,11 @@
 import { useReducer } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import type { ChecklistResponse, QuestionsResponse } from '@/shared/prompting'
+import { useStorageStore } from '@/shared/storage'
 import { SessionStage } from '@/shared/types'
+import StageStepper from '@/shared/ui/StageStepper'
+import { useFocusOnChange } from '@/shared/ui/use-focus-on-change'
 
 import ChecklistSetupStep from './ChecklistSetupStep'
 import FinalHtmlStep from './FinalHtmlStep'
@@ -17,6 +21,15 @@ import {
 
 export default function ResumePage() {
   const [state, dispatch] = useReducer(loopReducer, INITIAL_LOOP_STATE)
+  const [searchParams] = useSearchParams()
+  const sessionId = searchParams.get('session')
+  const hydrated = useStorageStore((store) => store.hydrated)
+  // True when the link points at a session that is not saved in this browser.
+  const sessionMissing = useStorageStore(
+    (store) =>
+      sessionId !== null &&
+      !store.sessions.some((session) => session.id === sessionId),
+  )
   const {
     stage,
     jobContext,
@@ -26,6 +39,12 @@ export default function ResumePage() {
     rounds,
     finishedEarly,
   } = state
+
+  // Move focus to the page heading when the stage changes, so keyboard and
+  // screen reader users start at the top of the new step.
+  const headingRef = useFocusOnChange<HTMLHeadingElement>(stage, {
+    preventScroll: true,
+  })
 
   function handleJobContextSubmit(text: string) {
     dispatch({ type: 'SUBMIT_JOB_CONTEXT', jobContext: text })
@@ -55,13 +74,48 @@ export default function ResumePage() {
     dispatch({ type: 'SAVE_FINAL_HTML', html })
   }
 
+  if (!hydrated) {
+    return (
+      <section aria-busy="true">
+        <h2 className="app-page-title">Resume</h2>
+        <p className="app-page-lead" role="status" aria-live="polite">
+          Loading your resume...
+        </p>
+      </section>
+    )
+  }
+
+  if (sessionMissing) {
+    return (
+      <section>
+        <h2 className="app-page-title">Resume not found</h2>
+        <p className="app-page-lead" role="alert">
+          This resume is not saved in this browser. It may have been deleted, or
+          the link may have been made on another device.
+        </p>
+        <div className="app-actions">
+          <Link to="/" className="app-button">
+            Back to your resumes
+          </Link>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section>
-      <h2 className="app-page-title">Resume</h2>
+      <h2
+        ref={headingRef}
+        className="app-page-title"
+        tabIndex={-1}
+      >
+        Resume
+      </h2>
       <p className="app-page-lead">
         Start a new resume application. The guided prompt workflow will be
         added here.
       </p>
+      <StageStepper current={stage} />
       <div className="app-card">
         {stage === SessionStage.JobContext ? (
           <JobContextStep
